@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: shiftflow-backend
+    runtime: python
+    rootDir: python-backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: APP_ENV
+        value: production
+      - key: OPENAI_TRACING_DISABLED
+        value: "1"
+      - key: OPENAI_BASE_URL
+        value: https://api.deepseek.com
+      - key: AIRLINE_AGENT_MODEL
+        value: deepseek-v4-flash
+      - key: AIRLINE_GUARDRAIL_MODEL
+        value: deepseek-v4-flash
+      - key: FRONTEND_ORIGINS
+        value: https://ui-three-red.vercel.app
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: LANGFUSE_PUBLIC_KEY
+        sync: false
+      - key: LANGFUSE_SECRET_KEY
+        sync: false
+      - key: LANGFUSE_BASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SHIFT_WRITE_TOKEN
+        sync: false
+      - key: REQUIRE_SUPABASE_AUTH_FOR_WRITES
+        value: "0"

@@ -1,0 +1,364 @@
+[
+  {
+    "id": "data_minimum_viable_demo",
+    "category": "data_integrity",
+    "description": "Demo data should contain enough stores, employees, and open shifts for a useful product walkthrough.",
+    "checks": {
+      "min_stores": 6,
+      "min_staff_per_first_store": 8,
+      "min_open_shifts_per_first_store": 1
+    }
+  },
+  {
+    "id": "unknown_store_does_not_hallucinate",
+    "category": "grounding",
+    "description": "Store lookup should not pretend an unknown store exists.",
+    "input": {
+      "store_query": "火星旗舰店"
+    },
+    "expect": {
+      "store_should_exist": false
+    }
+  },
+  {
+    "id": "open_shift_has_real_gap",
+    "category": "schedule_logic",
+    "description": "Every open shift returned by the repository should have required_count greater than assigned_count.",
+    "input": {
+      "store_id": "store_heykj_sh_jingan",
+      "status": "open"
+    }
+  },
+  {
+    "id": "staff_skills_are_structured",
+    "category": "data_shape",
+    "description": "Employee skills should be structured as a list so later recommendation rules can reason over them.",
+    "input": {
+      "store_id": "store_heykj_sh_jingan"
+    }
+  },
+  {
+    "id": "overtime_candidate_blocked",
+    "category": "assignment_policy",
+    "description": "A candidate already near the weekly hour cap should be blocked from a long extra shift.",
+    "input": {
+      "employee_name": "王雅婷",
+      "candidate_shift": {
+        "team_name": "喜茶上海静安嘉里店",
+        "schedule_date": "2026-08-12",
+        "shift_id": "shift_overtime_probe",
+        "shift_time": "09:00-18:00"
+      },
+      "existing_roster": [
+        {
+          "team_name": "喜茶上海静安嘉里店",
+          "employee_name": "王雅婷",
+          "schedule_date": "2026-08-08",
+          "shift_id": "existing_shift_1",
+          "shift_time": "09:00-21:00"
+        },
+        {
+          "team_name": "喜茶上海静安嘉里店",
+          "employee_name": "王雅婷",
+          "schedule_date": "2026-08-09",
+          "shift_id": "existing_shift_2",
+          "shift_time": "09:00-21:00"
+        },
+        {
+          "team_name": "喜茶上海静安嘉里店",
+          "employee_name": "王雅婷",
+          "schedule_date": "2026-08-10",
+          "shift_id": "existing_shift_3",
+          "shift_time": "09:00-21:00"
+        },
+        {
+          "team_name": "喜茶上海静安嘉里店",
+          "employee_name": "王雅婷",
+          "schedule_date": "2026-08-11",
+          "shift_id": "existing_shift_4",
+          "shift_time": "09:00-13:00"
+        }
+      ],
+      "expect_message_contains": "above the 40-hour guideline"
+    }
+  },
+  {
+    "id": "role_mismatch_candidate_rejected",
+    "category": "recommendation_policy",
+    "description": "A cashier without float permission should not be recommended for a kitchen backfill.",
+    "input": {
+      "store_id": "store_heykj_sh_jingan",
+      "required_role": "后厨"
+    }
+  },
+  {
+    "id": "forecast_silent_run_has_deviation",
+    "category": "forecasting",
+    "description": "V2 silent-run forecasts should expose evaluated prediction rows and measurable deviation.",
+    "input": {
+      "store_id": "store_heykj_sh_jingan"
+    },
+    "checks": {
+      "min_forecasts": 3,
+      "max_average_abs_deviation_rate": 1
+    }
+  },
+  {
+    "id": "metrics_import_generates_forecasts",
+    "category": "forecasting_import",
+    "description": "Imported hourly metrics should generate refreshed baseline forecasts and evaluation rows.",
+    "input": {
+      "store_id": "store_heykj_sh_jingan",
+      "metrics": [
+        {
+          "metric_date": "2026-08-18",
+          "hour": 11,
+          "role": "收银",
+          "order_count": 96,
+          "sales_amount": 2284.8,
+          "weather": "clear",
+          "temperature": 31,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": true,
+          "actual_labor_hours": 3.5
+        },
+        {
+          "metric_date": "2026-08-18",
+          "hour": 18,
+          "role": "后厨",
+          "order_count": 132,
+          "sales_amount": 3141.6,
+          "weather": "rain",
+          "temperature": 29,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": false,
+          "actual_labor_hours": 4.25
+        }
+      ]
+    },
+    "checks": {
+      "imported_count": 2,
+      "min_forecast_count": 2
+    }
+  },
+  {
+    "id": "labor_forecast_model_harness",
+    "category": "forecasting_model",
+    "description": "The labor forecast model smoke harness should be leakage-free, deterministic, non-negative, and within baseline error thresholds.",
+    "baseline_id": "labor_forecast_baseline_v1",
+    "input": {
+      "metrics": [
+        {
+          "metric_date": "2026-08-10",
+          "hour": 11,
+          "role": "收银",
+          "order_count": 92,
+          "sales_amount": 2189.6,
+          "weather": "clear",
+          "temperature": 30,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": false,
+          "actual_labor_hours": 3.0
+        },
+        {
+          "metric_date": "2026-08-10",
+          "hour": 12,
+          "role": "调饮师",
+          "order_count": 118,
+          "sales_amount": 2808.4,
+          "weather": "clear",
+          "temperature": 31,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": false,
+          "actual_labor_hours": 3.5
+        },
+        {
+          "metric_date": "2026-08-10",
+          "hour": 18,
+          "role": "后厨",
+          "order_count": 138,
+          "sales_amount": 3284.4,
+          "weather": "clear",
+          "temperature": 29,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": false,
+          "actual_labor_hours": 4.0
+        },
+        {
+          "metric_date": "2026-08-10",
+          "hour": 22,
+          "role": "值班经理",
+          "order_count": 44,
+          "sales_amount": 1047.2,
+          "weather": "clear",
+          "temperature": 27,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": false,
+          "actual_labor_hours": 1.5
+        },
+        {
+          "metric_date": "2026-08-11",
+          "hour": 11,
+          "role": "收银",
+          "order_count": 96,
+          "sales_amount": 2284.8,
+          "weather": "clear",
+          "temperature": 31,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": false,
+          "actual_labor_hours": 3.1
+        },
+        {
+          "metric_date": "2026-08-11",
+          "hour": 12,
+          "role": "调饮师",
+          "order_count": 122,
+          "sales_amount": 2903.6,
+          "weather": "clear",
+          "temperature": 32,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": false,
+          "actual_labor_hours": 3.6
+        },
+        {
+          "metric_date": "2026-08-11",
+          "hour": 18,
+          "role": "后厨",
+          "order_count": 143,
+          "sales_amount": 3403.4,
+          "weather": "rain",
+          "temperature": 28,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": false,
+          "actual_labor_hours": 4.1
+        },
+        {
+          "metric_date": "2026-08-11",
+          "hour": 22,
+          "role": "值班经理",
+          "order_count": 47,
+          "sales_amount": 1118.6,
+          "weather": "clear",
+          "temperature": 27,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": false,
+          "actual_labor_hours": 1.6
+        },
+        {
+          "metric_date": "2026-08-12",
+          "hour": 11,
+          "role": "收银",
+          "order_count": 101,
+          "sales_amount": 2403.8,
+          "weather": "clear",
+          "temperature": 31,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": true,
+          "actual_labor_hours": 3.2
+        },
+        {
+          "metric_date": "2026-08-12",
+          "hour": 12,
+          "role": "调饮师",
+          "order_count": 130,
+          "sales_amount": 3094.0,
+          "weather": "clear",
+          "temperature": 32,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": true,
+          "actual_labor_hours": 3.7
+        },
+        {
+          "metric_date": "2026-08-12",
+          "hour": 18,
+          "role": "后厨",
+          "order_count": 149,
+          "sales_amount": 3546.2,
+          "weather": "clear",
+          "temperature": 29,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": true,
+          "actual_labor_hours": 4.2
+        },
+        {
+          "metric_date": "2026-08-12",
+          "hour": 22,
+          "role": "值班经理",
+          "order_count": 48,
+          "sales_amount": 1142.4,
+          "weather": "clear",
+          "temperature": 27,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": false,
+          "actual_labor_hours": 1.55
+        },
+        {
+          "metric_date": "2026-08-13",
+          "hour": 11,
+          "role": "收银",
+          "order_count": 108,
+          "sales_amount": 2570.4,
+          "weather": "clear",
+          "temperature": 31,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": false,
+          "actual_labor_hours": 3.3
+        },
+        {
+          "metric_date": "2026-08-13",
+          "hour": 12,
+          "role": "调饮师",
+          "order_count": 139,
+          "sales_amount": 3308.2,
+          "weather": "clear",
+          "temperature": 32,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": true,
+          "actual_labor_hours": 4.2
+        },
+        {
+          "metric_date": "2026-08-13",
+          "hour": 18,
+          "role": "后厨",
+          "order_count": 158,
+          "sales_amount": 3760.4,
+          "weather": "rain",
+          "temperature": 28,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": false,
+          "actual_labor_hours": 4.4
+        },
+        {
+          "metric_date": "2026-08-13",
+          "hour": 22,
+          "role": "值班经理",
+          "order_count": 50,
+          "sales_amount": 1190.0,
+          "weather": "clear",
+          "temperature": 27,
+          "is_weekend": false,
+          "is_holiday": false,
+          "promotion_flag": false,
+          "actual_labor_hours": 1.6
+        }
+      ]
+    }
+  }
+]

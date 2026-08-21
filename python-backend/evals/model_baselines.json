@@ -1,0 +1,9 @@
+{
+  "labor_forecast_baseline_v1": {
+    "min_rows": 12,
+    "max_mae": 0.85,
+    "max_mape": 0.3,
+    "max_badcase_rate": 0.35,
+    "min_prediction": 0
+  }
+}

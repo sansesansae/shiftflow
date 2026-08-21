@@ -1,0 +1,9 @@
+openai>=2.45.0,<3
+openai-agents
+pydantic
+fastapi
+uvicorn
+python-dotenv
+langfuse
+openinference-instrumentation-openai-agents
+supabase
